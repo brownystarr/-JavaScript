@@ -1,0 +1,122 @@
+// ฟังก์ชันสำหรับเปรียบเทียบ LO
+function compareLO(lo1, lo2) {
+    const loOrder = {'H6': 7, 'H5': 6, 'H4': 5, 'L3': 4, 'L2': 3, 'L1': 2, 'P1': 1, 'A1': 0};
+    return (loOrder[lo1] || 0) - (loOrder[lo2] || 0);
+}
+
+// ฟังก์ชันสำหรับเปรียบเทียบ feedback
+function compareFeedback(f1, f2) {
+    const priority = {'TRUE': 2, 'TRUE with Condition': 1, 'FALSE': 0};
+    return priority[f2] - priority[f1];
+}
+
+// ฟังก์ชันหลักสำหรับสร้าง feedback
+function generateFeedback() {
+    console.log("เริ่มฟังก์ชัน generateFeedback");
+
+    // รับค่า LO และ LA จาก hidden fields
+    const lo1 = document.getElementById('field_878').value;
+    const lo2 = document.getElementById('field_879').value;
+    const lo3 = document.getElementById('field_880').value;
+
+    console.log("ค่า LO:", lo1, lo2, lo3);
+
+    const loLaValues = [lo1, lo2, lo3].filter(Boolean);
+
+    if (loLaValues.length === 0) {
+        console.log("ไม่พบค่า LO");
+        document.getElementById('feedback-container').innerHTML = "<p>ไม่พบข้อมูล LO และ LA กรุณาตรวจสอบว่าคุณได้กรอกข้อมูลครบถ้วนแล้ว</p>";
+        return;
+    }
+
+    let highestLO = '';
+    let las = [];
+
+    loLaValues.forEach(value => {
+        const [lo, la] = value.split(',');
+        const los = lo.split(/(?<=^.{2}|^.{4}|^.{6})/).filter(Boolean);
+        los.forEach(singleLO => {
+            if (compareLO(singleLO, highestLO) > 0) {
+                highestLO = singleLO;
+                las = la.substr(3).split(':');
+            }
+        });
+    });
+
+    console.log("HighestLO:", highestLO, "LAs:", las);
+
+    // Define feedback matrix and messages
+    const feedbackMatrix = {
+        'L1': {'T1': 'TRUE', 'T2': 'TRUE', 'T3': 'TRUE', 'T4': 'FALSE', 'P1': 'TRUE with Condition1', 'P2': 'TRUE with Condition1', 'P3': 'TRUE', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'L2': {'T1': 'TRUE', 'T2': 'TRUE', 'T3': 'TRUE', 'T4': 'FALSE', 'P1': 'TRUE with Condition1', 'P2': 'TRUE with Condition1', 'P3': 'TRUE', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'L3': {'T1': 'TRUE', 'T2': 'TRUE', 'T3': 'TRUE', 'T4': 'FALSE', 'P1': 'TRUE with Condition1', 'P2': 'TRUE with Condition1', 'P3': 'TRUE', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'H4': {'T1': 'TRUE with Condition4', 'T2': 'TRUE with Condition4', 'T3': 'TRUE with Condition5', 'T4': 'FALSE', 'P1': 'TRUE', 'P2': 'TRUE', 'P3': 'TRUE with Condition2', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'H5': {'T1': 'TRUE with Condition4', 'T2': 'TRUE with Condition4', 'T3': 'TRUE with Condition5', 'T4': 'FALSE', 'P1': 'TRUE', 'P2': 'TRUE', 'P3': 'TRUE with Condition2', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'H6': {'T1': 'TRUE with Condition4', 'T2': 'TRUE with Condition4', 'T3': 'TRUE with Condition5', 'T4': 'FALSE', 'P1': 'TRUE', 'P2': 'TRUE', 'P3': 'TRUE with Condition2', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'P1': {'T1': 'TRUE with Condition5', 'T2': 'FALSE', 'T3': 'TRUE with Condition5', 'T4': 'FALSE', 'P1': 'TRUE', 'P2': 'TRUE', 'P3': 'TRUE', 'A1': 'TRUE with Condition2', 'A2': 'TRUE with Condition3', 'E1': 'TRUE with Condition2'},
+        'A1': {'T1': 'FALSE', 'T2': 'FALSE', 'T3': 'FALSE', 'T4': 'FALSE', 'P1': 'TRUE with Condition', 'P2': 'TRUE with Condition', 'P3': 'FALSE', 'A1': 'TRUE with Condition', 'A2': 'TRUE with Condition', 'E1': 'TRUE with Condition2'}
+    };
+
+    const feedbackMessages = {
+        'FALSE': 'ผลลัพธ์การเรียนรู้ไม่เหมาะสมกับวิธีการประเมิน เลือกวิธีการประเมินอื่น',
+        'TRUE with Condition1': 'การประเมินที่เลือกยังไม่สอดคล้องกับผลลัพธ์การเรียนรู้โดยตรง ควรพิจารณาปรับวิธีการประเมินหรือผลลัพธ์การเรียนรู้',
+        'TRUE with Condition2': 'ควรมีวิธีการประเมินในลักษณะอื่นๆ ร่วมด้วย',
+        'TRUE with Condition3': 'วิธีการประเมินนี้เป็นวิธีการประเมินความก้าวหน้าของผู้เรียน จำเป็นต้องมีการประเมินผลลัพธ์การเรียนรู้อื่นที่สามารถประเมินผลลัพธ์การเรียนรู้ได้',
+        'TRUE with Condition4': 'ควรมีการตรวจสอบคุณภาพ และความยากง่ายของข้อสอบ',
+        'TRUE with Condition5': 'วิธีการประเมินนี้เป็นวิธีการประเมินความก้าวหน้าของผู้เรียน จำเป็นต้องมีการประเมินผลลัพธ์การเรียนรู้อื่นที่สามารถประเมินผลลัพธ์การเรียนรู้ได้',
+        'TRUE': 'ท่านกำหนดผลลัพธ์การเรียนรู้กับกิจกรรมการเรียนได้สอดคล้องกัน เยี่ยมมาก!!'
+    };
+
+    // Get feedback for each LA
+    const feedbacks = las.map(la => feedbackMatrix[highestLO]?.[la] || 'FALSE')
+                         .sort(compareFeedback);
+
+    // Get the highest priority feedback
+    const finalFeedback = feedbacks[0];
+
+    // Get the final feedback message
+    const finalMessage = feedbackMessages[finalFeedback] || 'ไม่พบข้อมูลการประเมิน';
+
+    // สร้าง output HTML
+    const output = `
+        <div id="learning-design-feedback">
+            <h3>ผลการวิเคราะห์</h3>
+            <p><strong>ผลลัพธ์การเรียนรู้สูงสุด:</strong> ${highestLO}</p>
+            <p><strong>วิธีการประเมินที่เลือก:</strong> ${las.join(', ')}</p>
+            <p><strong>ข้อเสนอแนะ:</strong> ${finalMessage}</p>
+        </div>
+    `;
+
+    console.log("ผลลัพธ์สุดท้าย:", output);
+
+    // แสดงผลลัพธ์
+    document.getElementById('feedback-container').innerHTML = output;
+}
+
+// เพิ่ม event listener เมื่อโหลดหน้าเสร็จ
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded");
+    const showFeedbackBtn = document.getElementById('showFeedbackBtn');
+    if (showFeedbackBtn) {
+        console.log("Found feedback button");
+        showFeedbackBtn.addEventListener('click', function(e) {
+            console.log("Button clicked");
+            e.preventDefault();  // ป้องกันการ submit ฟอร์ม
+            generateFeedback();
+        });
+    } else {
+        console.error("ไม่พบปุ่ม 'แสดงผลการวิเคราะห์'");
+    }
+
+    // ตรวจสอบ hidden fields
+    ['field_878', 'field_879', 'field_880'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field) {
+            console.error(`ไม่พบ field ที่มี ID: ${fieldId}`);
+        } else if (!field.value) {
+            console.warn(`Field ${fieldId} ไม่มีค่า`);
+        } else {
+            console.log(`Field ${fieldId} มีค่า: ${field.value}`);
+        }
+    });
+});
